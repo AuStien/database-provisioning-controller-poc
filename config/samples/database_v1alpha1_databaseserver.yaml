@@ -1,0 +1,12 @@
+apiVersion: database.stacc.com/v1alpha1
+kind: DatabaseServer
+metadata:
+  name: databaseserver-sample
+spec:
+  type: postgresql
+  secretName: postgres-test-server-secret
+  postgres:
+    host: localhost
+    username: postgres
+    port: 5432
+    useSsl: false

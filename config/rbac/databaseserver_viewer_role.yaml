@@ -1,0 +1,20 @@
+# permissions for end users to view databaseservers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: databaseserver-viewer-role
+rules:
+- apiGroups:
+  - database.stacc.com
+  resources:
+  - databaseservers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - database.stacc.com
+  resources:
+  - databaseservers/status
+  verbs:
+  - get

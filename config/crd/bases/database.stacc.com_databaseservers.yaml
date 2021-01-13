@@ -1,0 +1,79 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: databaseservers.database.stacc.com
+spec:
+  group: database.stacc.com
+  names:
+    kind: DatabaseServer
+    listKind: DatabaseServerList
+    plural: databaseservers
+    singular: databaseserver
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: DatabaseServer is the Schema for the databaseservers API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: DatabaseServerSpec defines the desired state of DatabaseServer
+          properties:
+            postgres:
+              properties:
+                host:
+                  description: Host is the hostname of the postgres server
+                  type: string
+                port:
+                  description: Port is the port of the server
+                  format: int32
+                  type: integer
+                useSsl:
+                  description: UseSsl is a bool deciding if ssl will be used
+                  type: boolean
+                username:
+                  description: Username is the username associated with the server
+                  type: string
+              type: object
+            secretName:
+              description: SecretName is the name of the secret stored in the cluster
+              type: string
+            type:
+              description: Type is the type of database server. Postgres, mongo etc.
+              type: string
+          type: object
+        status:
+          description: DatabaseServerStatus defines the observed state of DatabaseServer
+          properties:
+            connected:
+              type: boolean
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

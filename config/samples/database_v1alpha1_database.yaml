@@ -1,0 +1,10 @@
+apiVersion: database.stacc.com/v1alpha1
+kind: Database
+metadata:
+  name: database-sample
+spec:
+  databaseServerName: databaseserver-sample
+  databaseServerNamespace: default
+  name: test-database
+  secretName: test-database-secret
+  secretNamespace: default

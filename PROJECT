@@ -1,0 +1,10 @@
+domain: stacc.com
+repo: flow.stacc.dev/database-provisioning-poc
+resources:
+- group: database
+  kind: DatabaseServer
+  version: v1alpha1
+- group: database
+  kind: Database
+  version: v1alpha1
+version: "2"
