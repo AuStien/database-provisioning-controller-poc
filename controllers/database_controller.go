@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	databasev1alpha1 "flow.stacc.dev/database-provisioning-poc/api/v1alpha1"
@@ -49,6 +50,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("database", req.NamespacedName)
 
+	// Get database resource
 	var database databasev1alpha1.Database
 	err := r.Get(ctx, req.NamespacedName, &database)
 	if err != nil {
@@ -56,6 +58,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Get database Server resource
 	var databaseServer databasev1alpha1.DatabaseServer
 	err = r.Get(ctx, client.ObjectKey{Namespace: database.Spec.DatabaseServerNamespace, Name: database.Spec.DatabaseServerName}, &databaseServer)
 	if err != nil {
@@ -63,24 +66,32 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Stop reconsiling if database server is not connected
 	if databaseServer.Status.Connected == false {
 		log.Info("Database server not connected")
 		return ctrl.Result{}, nil
 	}
 
+	// Get k8s clientset
 	clientset, err := kubernetes.NewClientset(r.KubernetesClient)
 	if err != nil {
 		log.Error(err, "Error obtaining clientset")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Get secret with database server password
 	serverSecret, err := clientset.CoreV1().Secrets(databaseServer.GetNamespace()).Get(databaseServer.Spec.SecretName, metav1.GetOptions{})
 	if err != nil {
 		log.Error(err, "Error obtaining secret")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
+	// Create url for inital connect to server
 	url := fmt.Sprintf("postgresql://%s:%s@%s:%d/postgres", databaseServer.Spec.Postgres.Username, serverSecret.Data["password"], databaseServer.Spec.Postgres.Host, databaseServer.Spec.Postgres.Port)
 
+	log.Info("Inital connect to database", "username", databaseServer.Spec.Postgres.Username, "database", "postgres", "host", databaseServer.Spec.Postgres.Host, "port", databaseServer.Spec.Postgres.Port)
+
+	// Create connection to server
 	dbpool, err := pgxpool.Connect(ctx, url)
 	if err != nil {
 		log.Info("Unable to connect to database")
@@ -88,6 +99,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	defer dbpool.Close()
 
+	// Get username, set to database name if not present
 	username := database.Spec.Username
 	if username == "" {
 		username = database.Spec.Name
@@ -100,12 +112,15 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
+	// Check if database secret exists
 	dbSecret, err := clientset.CoreV1().Secrets(database.Spec.SecretNamespace).Get(database.Spec.SecretName, metav1.GetOptions{})
 	if err != nil {
+		// If error is other than "Not found" stop reconsiling
 		if !errors.IsNotFound(err) {
 			log.Error(err, "unable to create secret")
 			return ctrl.Result{}, err
 		}
+		// Create database secret
 		dbSecret = &coreV1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      database.Spec.SecretName,
@@ -121,6 +136,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			log.Error(err, "unable to create secret")
 			return ctrl.Result{}, err
 		}
+		// Secret already exists and needs to be updated
 	} else {
 		dbSecret.Data["username"] = []byte(username)
 		dbSecret.Data["password"] = []byte(password)
@@ -131,25 +147,52 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
-	_, err = dbpool.Exec(ctx, fmt.Sprintf("CREATE USER \"%s\" WITH PASSWORD '%s'", username, password))
+	// Check if user exists on server
+	_, err = dbpool.Exec(ctx, fmt.Sprintf("SELECT usename FROM pg_user WHERE usename='%s'", username))
+	// If user doesn't exist create new
 	if err != nil {
-		log.Error(err, "unable to create role in database")
-		return ctrl.Result{}, err
+		_, err = dbpool.Exec(ctx, fmt.Sprintf("CREATE USER \"%s\" WITH PASSWORD '%s'", username, password))
+		if err != nil {
+			log.Error(err, "unable to create role in database")
+			return ctrl.Result{}, err
+		}
+		// If user exists update password
+	} else {
+		_, err = dbpool.Exec(ctx, fmt.Sprintf("ALTER USER \"%s\" WITH PASSWORD '%s'", username, password))
+		if err != nil {
+			log.Error(err, "unable to create role in database")
+			return ctrl.Result{}, err
+		}
 	}
 
+	// Try to create database
 	_, err = dbpool.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\" TEMPLATE \"template0\"", database.Spec.Name))
 	if err != nil {
-		log.Error(err, "unable to create database in database server")
-		return ctrl.Result{}, err
+		if strings.Contains(err.Error(), "already exists") {
+			log.Info("Database already exisis")
+		} else {
+			log.Error(err, "unable to create database in database server")
+			return ctrl.Result{}, err
+		}
 	}
 
+	// Grant permissions to user
 	_, err = dbpool.Exec(ctx, fmt.Sprintf("GRANT ALL ON DATABASE \"%s\" TO \"%s\"", database.Spec.Name, username))
 	if err != nil {
 		log.Error(err, "unable to grant permissions in database")
 		return ctrl.Result{}, err
 	}
 
-	log.Info("Database setup successfull")
+	// Test if connection to new database works
+	newURL := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s", username, password, databaseServer.Spec.Postgres.Host, databaseServer.Spec.Postgres.Port, database.Spec.Name)
+
+	log.Info("Connecting to new database", "username", username, "database", database.Spec.Name, "host", databaseServer.Spec.Postgres.Host, "port", databaseServer.Spec.Postgres.Port)
+
+	newDBpool, err := pgxpool.Connect(ctx, newURL)
+	if err != nil {
+		log.Info("Unable to connect to new database", "err", err)
+	}
+	defer newDBpool.Close()
 
 	return ctrl.Result{}, nil
 }
