@@ -50,6 +50,8 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("database", req.NamespacedName)
 
+	finalizer := "database.stacc.com/finalizer"
+
 	// Get database resource
 	var database databasev1alpha1.Database
 	err := r.Get(ctx, req.NamespacedName, &database)
@@ -60,7 +62,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Get database Server resource
 	var databaseServer databasev1alpha1.DatabaseServer
-	err = r.Get(ctx, client.ObjectKey{Namespace: database.Spec.DatabaseServerNamespace, Name: database.Spec.DatabaseServerName}, &databaseServer)
+	err = r.Get(ctx, client.ObjectKey{Namespace: database.Spec.Server.Namespace, Name: database.Spec.Server.Name}, &databaseServer)
 	if err != nil {
 		log.Error(err, "uanble to get databaseServer resource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -105,6 +107,31 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		username = database.Spec.Name
 	}
 
+	// Finalize handler
+	if !database.ObjectMeta.DeletionTimestamp.IsZero() && database.Spec.Deletable {
+		log.Info("Database being finalized")
+
+		_, err = dbpool.Exec(ctx, fmt.Sprintf("DROP DATABASE \"%s\"", database.Spec.Name))
+		if err != nil {
+			log.Error(err, "unable to drop database in database server")
+			return ctrl.Result{}, err
+		}
+
+		_, err = dbpool.Exec(ctx, fmt.Sprintf("DROP USER \"%s\"", username))
+		if err != nil {
+			log.Error(err, "unable to drop user in database server")
+			return ctrl.Result{}, err
+		}
+
+		database.ObjectMeta.Finalizers = removeString(database.ObjectMeta.Finalizers, finalizer)
+		if err := r.Update(ctx, &database); err != nil {
+			log.Error(err, "unable to update database resource")
+			return ctrl.Result{}, err
+		}
+
+		return ctrl.Result{}, nil
+	}
+
 	// Generate a password with length 48, 10 digits, allow uppercase, allow repeated chars
 	password, err := password.Generate(48, 10, 0, false, true)
 	if err != nil {
@@ -113,7 +140,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Check if database secret exists
-	dbSecret, err := clientset.CoreV1().Secrets(database.Spec.SecretNamespace).Get(database.Spec.SecretName, metav1.GetOptions{})
+	dbSecret, err := clientset.CoreV1().Secrets(database.Spec.Secret.Namespace).Get(database.Spec.Secret.Name, metav1.GetOptions{})
 	if err != nil {
 		// If error is other than "Not found" stop reconsiling
 		if !errors.IsNotFound(err) {
@@ -123,15 +150,15 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		// Create database secret
 		dbSecret = &coreV1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      database.Spec.SecretName,
-				Namespace: database.Spec.SecretNamespace,
+				Name:      database.Spec.Secret.Name,
+				Namespace: database.Spec.Secret.Namespace,
 			},
 			Data: map[string][]byte{
 				"username": []byte(username),
 				"password": []byte(password),
 			},
 		}
-		_, err := clientset.CoreV1().Secrets(database.Spec.SecretNamespace).Create(dbSecret)
+		_, err := clientset.CoreV1().Secrets(database.Spec.Secret.Namespace).Create(dbSecret)
 		if err != nil {
 			log.Error(err, "unable to create secret")
 			return ctrl.Result{}, err
@@ -140,17 +167,22 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	} else {
 		dbSecret.Data["username"] = []byte(username)
 		dbSecret.Data["password"] = []byte(password)
-		_, err := clientset.CoreV1().Secrets(database.Spec.SecretNamespace).Update(dbSecret)
+		_, err := clientset.CoreV1().Secrets(database.Spec.Secret.Namespace).Update(dbSecret)
 		if err != nil {
 			log.Error(err, "unable to update secret")
 			return ctrl.Result{}, err
 		}
 	}
+	database.Status.Secret = "done"
+	if err := r.Status().Update(ctx, &database); err != nil {
+		log.Error(err, "unable to update database status")
+		return ctrl.Result{}, err
+	}
 
 	// Check if user exists on server
-	_, err = dbpool.Exec(ctx, fmt.Sprintf("SELECT usename FROM pg_user WHERE usename='%s'", username))
+	commandTag, err := dbpool.Exec(ctx, fmt.Sprintf("SELECT usename FROM pg_user WHERE usename='%s'", username))
 	// If user doesn't exist create new
-	if err != nil {
+	if err != nil || commandTag.RowsAffected() == 0 {
 		_, err = dbpool.Exec(ctx, fmt.Sprintf("CREATE USER \"%s\" WITH PASSWORD '%s'", username, password))
 		if err != nil {
 			log.Error(err, "unable to create role in database")
@@ -160,9 +192,14 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	} else {
 		_, err = dbpool.Exec(ctx, fmt.Sprintf("ALTER USER \"%s\" WITH PASSWORD '%s'", username, password))
 		if err != nil {
-			log.Error(err, "unable to create role in database")
+			log.Error(err, "unable to alter user in database")
 			return ctrl.Result{}, err
 		}
+	}
+	database.Status.User = "done"
+	if err := r.Status().Update(ctx, &database); err != nil {
+		log.Error(err, "unable to update database status")
+		return ctrl.Result{}, err
 	}
 
 	// Try to create database
@@ -175,11 +212,21 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, err
 		}
 	}
+	database.Status.DB = "done"
+	if err := r.Status().Update(ctx, &database); err != nil {
+		log.Error(err, "unable to update database status")
+		return ctrl.Result{}, err
+	}
 
 	// Grant permissions to user
 	_, err = dbpool.Exec(ctx, fmt.Sprintf("GRANT ALL ON DATABASE \"%s\" TO \"%s\"", database.Spec.Name, username))
 	if err != nil {
 		log.Error(err, "unable to grant permissions in database")
+		return ctrl.Result{}, err
+	}
+	database.Status.Permissions = "done"
+	if err := r.Status().Update(ctx, &database); err != nil {
+		log.Error(err, "unable to update database status")
 		return ctrl.Result{}, err
 	}
 
@@ -191,10 +238,41 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	newDBpool, err := pgxpool.Connect(ctx, newURL)
 	if err != nil {
 		log.Info("Unable to connect to new database", "err", err)
+		database.Status.Connection = false
+		if err := r.Status().Update(ctx, &database); err != nil {
+			log.Error(err, "unable to update database status")
+			return ctrl.Result{}, err
+		}
+	} else {
+		database.Status.Connection = true
+		if err := r.Status().Update(ctx, &database); err != nil {
+			log.Error(err, "unable to update database status")
+			return ctrl.Result{}, err
+		}
 	}
 	defer newDBpool.Close()
 
 	return ctrl.Result{}, nil
+}
+
+// Helper functions to check and remove string from a slice of strings.
+func containsString(slice []string, s string) bool {
+	for _, item := range slice {
+		if item == s {
+			return true
+		}
+	}
+	return false
+}
+
+func removeString(slice []string, s string) (result []string) {
+	for _, item := range slice {
+		if item == s {
+			continue
+		}
+		result = append(result, item)
+	}
+	return
 }
 
 func (r *DatabaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
