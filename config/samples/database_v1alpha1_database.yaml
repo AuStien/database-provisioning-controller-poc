@@ -1,10 +1,15 @@
 apiVersion: database.stacc.com/v1alpha1
 kind: Database
 metadata:
-  name: database-sample
+  name: postgres-db
+  finalizers:
+    - database.stacc.com/finalizer
 spec:
-  databaseServerName: databaseserver-sample
-  databaseServerNamespace: default
-  name: test-database
-  secretName: test-database-secret
-  secretNamespace: default
+  server:
+    name: databaseserver-sample
+    namespace: default
+  name: postgres-db
+  secret:
+    name: postgres-db-secret
+    namespace: default
+  deletable: true
