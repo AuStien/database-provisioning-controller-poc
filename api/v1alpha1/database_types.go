@@ -23,27 +23,51 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// Server is the server on which the database is hosted
+type Server struct {
+	// Name is the name of the database server
+	Name string `json:"name,omitempty"`
+	// Namespace is the namespace of the database server
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// Secret is the secret containing credentials
+type Secret struct {
+	// Name is the name of the secret
+	Name string `json:"name,omitempty"`
+	// Namespace is the namespace of the secret
+	Namespace string `json:"namespace,omitempty"`
+}
+
 // DatabaseSpec defines the desired state of Database
 type DatabaseSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// DatabaseServerName is the name of databaseServer on which this database is to be created
-	DatabaseServerName string `json:"databaseServerName,omitempty"`
-	// DatabaseServerNamespace is the namespace the databaseServer is stored on
-	DatabaseServerNamespace string `json:"databaseServerNamespace,omitempty"`
+	// Server is the namespaced name of databaseServer on which this database is to be created
+	Server Server `json:"server,omitempty"`
 	// Name is the name of the database
 	Name string `json:"name,omitempty"`
-	// SecretName is the name of the secret that will be associated with the database
-	SecretName string `json:"secretName,omitempty"`
-	// SecretNamespace is the namespace where the secret will be stored
-	SecretNamespace string `json:"secretNamespace,omitempty"`
+	// Secret is the secret containing credentials
+	Secret Secret `json:"secret,omitempty"`
 	// Username is the username to be assigned to the database (default is name of database)
 	Username string `json:"username,omitempty"`
+	// Deletable is if database is able to be deleted
+	Deletable bool `json:"deletable,omitempty"`
 }
 
 // DatabaseStatus defines the observed state of Database
 type DatabaseStatus struct {
+	// Secret is the status of secret containg credentials
+	Secret string `json:"secret,omitempty"`
+	// User is status of user on server
+	User string `json:"user,omitempty"`
+	// DB is status of the new database on server
+	DB string `json:"db,omitempty"`
+	// Permissions is status of permissions given to new user
+	Permissions string `json:"permissions,omitempty"`
+	// Connection is status of connection to new database with new user
+	Connection bool `json:"connection,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -36,25 +36,33 @@ spec:
         spec:
           description: DatabaseSpec defines the desired state of Database
           properties:
-            databaseServerName:
-              description: DatabaseServerName is the name of databaseServer on which
-                this database is to be created
-              type: string
-            databaseServerNamespace:
-              description: DatabaseServerNamespace is the namespace the databaseServer
-                is stored on
-              type: string
+            deletable:
+              description: Deletable is if database is able to be deleted
+              type: boolean
             name:
               description: Name is the name of the database
               type: string
-            secretName:
-              description: SecretName is the name of the secret that will be associated
-                with the database
-              type: string
-            secretNamespace:
-              description: SecretNamespace is the namespace where the secret will
-                be stored
-              type: string
+            secret:
+              description: Secret is the secret containing credentials
+              properties:
+                name:
+                  description: Name is the name of the secret
+                  type: string
+                namespace:
+                  description: Namespace is the namespace of the secret
+                  type: string
+              type: object
+            server:
+              description: Server is the namespaced name of databaseServer on which
+                this database is to be created
+              properties:
+                name:
+                  description: Name is the name of the database server
+                  type: string
+                namespace:
+                  description: Namespace is the namespace of the database server
+                  type: string
+              type: object
             username:
               description: Username is the username to be assigned to the database
                 (default is name of database)
@@ -62,6 +70,23 @@ spec:
           type: object
         status:
           description: DatabaseStatus defines the observed state of Database
+          properties:
+            connection:
+              description: Connection is status of connection to new database with
+                new user
+              type: boolean
+            db:
+              description: DB is status of the new database on server
+              type: string
+            permissions:
+              description: Permissions is status of permissions given to new user
+              type: string
+            secret:
+              description: Secret is the status of secret containg credentials
+              type: string
+            user:
+              description: User is status of user on server
+              type: string
           type: object
       type: object
   version: v1alpha1
