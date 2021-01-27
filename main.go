@@ -60,6 +60,12 @@ func main() {
 		setupLog.Error(err, "failed to create k8s client")
 	}
 
+	// Get k8s clientset
+	clientset, err := kubernetes.NewClientset(client)
+	if err != nil {
+		setupLog.Error(err, "failed to create k8s clientset")
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -73,19 +79,21 @@ func main() {
 	}
 
 	if err = (&controllers.DatabaseServerReconciler{
-		Client:           mgr.GetClient(),
-		Log:              ctrl.Log.WithName("controllers").WithName("DatabaseServer"),
-		Scheme:           mgr.GetScheme(),
-		KubernetesClient: client,
+		Client:              mgr.GetClient(),
+		Log:                 ctrl.Log.WithName("controllers").WithName("DatabaseServer"),
+		Scheme:              mgr.GetScheme(),
+		KubernetesClient:    client,
+		KubernetesClientset: clientset,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DatabaseServer")
 		os.Exit(1)
 	}
 	if err = (&controllers.DatabaseReconciler{
-		Client:           mgr.GetClient(),
-		Log:              ctrl.Log.WithName("controllers").WithName("Database"),
-		Scheme:           mgr.GetScheme(),
-		KubernetesClient: client,
+		Client:              mgr.GetClient(),
+		Log:                 ctrl.Log.WithName("controllers").WithName("Database"),
+		Scheme:              mgr.GetScheme(),
+		KubernetesClient:    client,
+		KubernetesClientset: clientset,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Database")
 		os.Exit(1)
