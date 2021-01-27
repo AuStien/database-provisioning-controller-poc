@@ -39,6 +39,9 @@ spec:
             deletable:
               description: Deletable is if database is able to be deleted
               type: boolean
+            migrationURL:
+              description: MigrationURL provides URL to the migration
+              type: string
             name:
               description: Name is the name of the database
               type: string
@@ -78,6 +81,9 @@ spec:
             db:
               description: DB is status of the new database on server
               type: string
+            migrated:
+              description: Migrated is database has been migrated
+              type: boolean
             permissions:
               description: Permissions is status of permissions given to new user
               type: string

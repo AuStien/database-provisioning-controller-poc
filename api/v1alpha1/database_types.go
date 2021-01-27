@@ -54,6 +54,8 @@ type DatabaseSpec struct {
 	Username string `json:"username,omitempty"`
 	// Deletable is if database is able to be deleted
 	Deletable bool `json:"deletable,omitempty"`
+	// MigrationURL provides URL to the migration
+	MigrationURL string `json:"migrationURL,omitempty"`
 }
 
 // DatabaseStatus defines the observed state of Database
@@ -68,6 +70,8 @@ type DatabaseStatus struct {
 	Permissions string `json:"permissions,omitempty"`
 	// Connection is status of connection to new database with new user
 	Connection bool `json:"connection,omitempty"`
+	// Migrated is database has been migrated
+	Migrated bool `json:"migrated,omitempty"`
 }
 
 // +kubebuilder:object:root=true
