@@ -61,17 +61,15 @@ type DatabaseSpec struct {
 // DatabaseStatus defines the observed state of Database
 type DatabaseStatus struct {
 	// Secret is the status of secret containg credentials
-	Secret string `json:"secret,omitempty"`
+	CreatedSecret bool `json:"secret,omitempty"`
 	// User is status of user on server
-	User string `json:"user,omitempty"`
+	CreatedUser bool `json:"user,omitempty"`
 	// DB is status of the new database on server
-	DB string `json:"db,omitempty"`
+	CreatedDatabase bool `json:"db,omitempty"`
 	// Permissions is status of permissions given to new user
-	Permissions string `json:"permissions,omitempty"`
+	GrantedPermissions bool `json:"permissions,omitempty"`
 	// Connection is status of connection to new database with new user
 	Connection bool `json:"connection,omitempty"`
-	// Migrated is database has been migrated
-	Migrated bool `json:"migrated,omitempty"`
 }
 
 // +kubebuilder:object:root=true
