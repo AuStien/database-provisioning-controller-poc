@@ -29,7 +29,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	databasev1alpha1 "flow.stacc.dev/database-provisioning-poc/api/v1alpha1"
-	postgres "flow.stacc.dev/database-provisioning-poc/pkg/db"
+	db "flow.stacc.dev/database-provisioning-poc/pkg/db"
+
 	kubernetes "flow.stacc.dev/database-provisioning-poc/pkg/kubernetes"
 )
 
@@ -51,8 +52,7 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	log := r.Log.WithValues("databaseserver", req.NamespacedName)
 
 	var databaseServer databasev1alpha1.DatabaseServer
-	err := r.Get(ctx, req.NamespacedName, &databaseServer)
-	if err != nil {
+	if err := r.Get(ctx, req.NamespacedName, &databaseServer); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -62,22 +62,66 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	server := postgres.PostgresServer{
-		Host: databaseServer.Spec.Postgres.Host,
-		Port: databaseServer.Spec.Postgres.Port,
-	}
-
-	if msg, err := server.Connect(databaseServer.Spec.Postgres.Username, string(secret.Data["password"])); err != nil {
-		log.Error(err, msg)
-		databaseServer.Status.Connected = false
-		if err := r.Status().Update(ctx, &databaseServer); err != nil {
-			log.Error(err, "unable to update databaseServer status")
-			return ctrl.Result{}, err
+	if databaseServer.Spec.Type == "postgresql" {
+		server := db.PostgresServer{
+			Username: databaseServer.Spec.Postgres.Username,
+			Password: string(secret.Data["password"]),
+			Host:     databaseServer.Spec.Postgres.Host,
+			Port:     databaseServer.Spec.Postgres.Port,
 		}
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
-	}
 
-	defer server.Disconnect()
+		if msg, err := server.Connect(); err != nil {
+			log.Error(err, msg)
+			databaseServer.Status.Connected = false
+			if err := r.Status().Update(ctx, &databaseServer); err != nil {
+				log.Error(err, "unable to update databaseServer status")
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
+		}
+
+		defer server.Disconnect()
+	} else if databaseServer.Spec.Type == "mysql" {
+		server := db.MysqlServer{
+			Username: databaseServer.Spec.Mysql.Username,
+			Password: string(secret.Data["password"]),
+			Host:     databaseServer.Spec.Mysql.Host,
+			Port:     databaseServer.Spec.Mysql.Port,
+		}
+
+		if msg, err := server.Connect(); err != nil {
+			log.Error(err, msg)
+			databaseServer.Status.Connected = false
+			if err := r.Status().Update(ctx, &databaseServer); err != nil {
+				log.Error(err, "unable to update databaseServer status")
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
+		}
+
+		defer server.Disconnect()
+
+	} else if databaseServer.Spec.Type == "mongo" {
+		server := db.MongoServer{
+			Username: databaseServer.Spec.Mongo.Username,
+			Password: string(secret.Data["password"]),
+			Host:     databaseServer.Spec.Mongo.Host,
+			Port:     databaseServer.Spec.Mongo.Port,
+		}
+
+		if msg, err := server.Connect(); err != nil {
+			log.Error(err, msg)
+			databaseServer.Status.Connected = false
+			if err := r.Status().Update(ctx, &databaseServer); err != nil {
+				log.Error(err, "unable to update databaseServer status")
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
+		}
+
+		defer server.Disconnect()
+
+	}
 
 	log.Info("Successfully connected to database")
 	databaseServer.Status.Connected = true

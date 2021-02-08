@@ -18,16 +18,12 @@ package controllers
 
 import (
 	"context"
-	"time"
+	"strings"
 
 	databasev1alpha1 "flow.stacc.dev/database-provisioning-poc/api/v1alpha1"
-	postgres "flow.stacc.dev/database-provisioning-poc/pkg/db"
+	db "flow.stacc.dev/database-provisioning-poc/pkg/db"
 	kubernetes "flow.stacc.dev/database-provisioning-poc/pkg/kubernetes"
 	"github.com/go-logr/logr"
-
-	// "github.com/golang-migrate/migrate/v4/database/postgres"
-	// _ "github.com/golang-migrate/migrate/v4/source/file"
-	// _ "github.com/jackc/pgx"
 
 	"github.com/sethvargo/go-password/password"
 	coreV1 "k8s.io/api/core/v1"
@@ -61,7 +57,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	var database databasev1alpha1.Database
 	err := r.Get(ctx, req.NamespacedName, &database)
 	if err != nil {
-		log.Error(err, "uanble to get database resource")
+		log.Info("Uanble to get database resource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -86,100 +82,17 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// // Create url for inital connect to server
-	// url := fmt.Sprintf("postgresql://%s:%s@%s:%d/postgres", databaseServer.Spec.Postgres.Username, serverSecret.Data["password"], databaseServer.Spec.Postgres.Host, databaseServer.Spec.Postgres.Port)
-
-	// log.Info("Inital connect to database", "username", databaseServer.Spec.Postgres.Username, "database", "postgres", "host", databaseServer.Spec.Postgres.Host, "port", databaseServer.Spec.Postgres.Port)
-
-	// // Create connection to server
-	// conn, err := pgx.Connect(ctx, url)
-	// if err != nil {
-	// 	log.Info("Unable to connect to database")
-	// 	return ctrl.Result{RequeueAfter: time.Minute}, nil
-	// }
-	// defer conn.Close(ctx)
-
-	ps := postgres.PostgresServer{
-		Host: databaseServer.Spec.Postgres.Host,
-		Port: databaseServer.Spec.Postgres.Port,
-	}
-
-	if msg, err := ps.Connect(databaseServer.Spec.Postgres.Username, string(serverSecret.Data["password"])); err != nil {
-		log.Info(msg, "err", err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
-	}
-
-	//////// Connect to server /////////////////////////7
-
-	// db, err := sql.Open("postgres", url)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-	// 	os.Exit(1)
-	// }
-	// defer db.Close()
-
-	// driver, err := postgres.WithInstance(db, &postgres.Config{})
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "error getting driver: %v\n", err)
-	// 	os.Exit(1)
-	// }
-	// m, err := migrate.NewWithDatabaseInstance(
-	// 	"file:///home/a/utvikling/testing/go/db/migrations",
-	// 	"postgres", driver)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "migration failed: %v\n", err)
-	// 	os.Exit(1)
-	// }
-	// m.Steps(1)
-
-	///////////////////////////////////////////////////7
-
-	// Get username, set to database name if not present
-	username := database.Spec.Username
-	if username == "" {
-		username = database.Spec.Name
-	}
-
-	// Finalize handler
-	if !database.ObjectMeta.DeletionTimestamp.IsZero() && database.Spec.Deletable {
-		log.Info("Database being finalized")
-
-		// _, err = conn.Exec(ctx, fmt.Sprintf("DROP DATABASE \"%s\"", database.Spec.Name))
-		// if err != nil {
-		// 	log.Error(err, "unable to drop database in database server")
-		// 	return ctrl.Result{}, err
-		// }
-
-		if msg, err := ps.DeleteDatabase(); err != nil {
-			log.Error(err, msg)
-			return ctrl.Result{}, err
-		}
-
-		// _, err = conn.Exec(ctx, fmt.Sprintf("DROP USER \"%s\"", username))
-		// if err != nil {
-		// 	log.Error(err, "unable to drop user in database server")
-		// 	return ctrl.Result{}, err
-		// }
-
-		if msg, err := ps.DeleteUser(); err != nil {
-			log.Error(err, msg)
-			return ctrl.Result{}, err
-		}
-
-		database.ObjectMeta.Finalizers = removeString(database.ObjectMeta.Finalizers, finalizer)
-		if err := r.Update(ctx, &database); err != nil {
-			log.Error(err, "unable to update database resource")
-			return ctrl.Result{}, err
-		}
-
-		return ctrl.Result{}, nil
-	}
-
 	// Generate a password with length 48, 10 digits, allow uppercase, allow repeated chars
 	password, err := password.Generate(48, 10, 0, false, true)
 	if err != nil {
 		log.Error(err, "unable to generate password")
 		return ctrl.Result{}, err
+	}
+
+	// Get username, set to database name if not present
+	username := database.Spec.Username
+	if username == "" {
+		username = database.Spec.Name
 	}
 
 	// Check if database secret exists
@@ -216,128 +129,118 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, err
 		}
 	}
-	database.Status.Secret = "done"
+	database.Status.CreatedSecret = true
 	if err := r.Status().Update(ctx, &database); err != nil {
 		log.Error(err, "unable to update database status")
 		return ctrl.Result{}, err
 	}
 
-	// // Check if user exists on server
-	// commandTag, err := conn.Exec(ctx, fmt.Sprintf("SELECT usename FROM pg_user WHERE usename='%s'", username))
-	// // If user doesn't exist create new
-	// if err != nil || commandTag.RowsAffected() == 0 {
-	// 	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE USER \"%s\" WITH PASSWORD '%s'", username, password))
-	// 	if err != nil {
-	// 		log.Error(err, "unable to create role in database")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// 	// If user exists update password
-	// } else {
-	// 	_, err = conn.Exec(ctx, fmt.Sprintf("ALTER USER \"%s\" WITH PASSWORD '%s'", username, password))
-	// 	if err != nil {
-	// 		log.Error(err, "unable to alter user in database")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// }
+	var sqlServer db.SQLServer
 
-	ps.Postgres = postgres.Postgres{Name: database.Spec.Name, Username: username, Password: password}
-
-	if msg, err := ps.CreateUser(); err != nil {
-		log.Error(err, msg)
-		return ctrl.Result{}, err
-	}
-
-	database.Status.User = "done"
-	if err := r.Status().Update(ctx, &database); err != nil {
-		log.Error(err, "unable to update database status")
-		return ctrl.Result{}, err
-	}
-
-	// Try to create database
-	// _, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE \"%s\" TEMPLATE \"template0\"", database.Spec.Name))
-	// if err != nil {
-	// 	if strings.Contains(err.Error(), "already exists") {
-	// 		log.Info("Database already exisis")
-	// 	} else {
-	// 		log.Error(err, "unable to create database in database server")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// }
-
-	if msg, err := ps.CreateDatabase(); err != nil {
-		log.Error(err, msg)
-		return ctrl.Result{}, err
-	}
-
-	database.Status.DB = "done"
-	if err := r.Status().Update(ctx, &database); err != nil {
-		log.Error(err, "unable to update database status")
-		return ctrl.Result{}, err
-	}
-
-	// Grant permissions to user
-	// _, err = conn.Exec(ctx, fmt.Sprintf("GRANT ALL ON DATABASE \"%s\" TO \"%s\"", database.Spec.Name, username))
-	// if err != nil {
-	// 	log.Error(err, "unable to grant permissions in database")
-	// 	return ctrl.Result{}, err
-	// }
-
-	if msg, err := ps.GrantPermissions(); err != nil {
-		log.Error(err, msg)
-		return ctrl.Result{}, err
-	}
-
-	database.Status.Permissions = "done"
-	if err := r.Status().Update(ctx, &database); err != nil {
-		log.Error(err, "unable to update database status")
-		return ctrl.Result{}, err
-	}
-
-	// // Test if connection to new database works
-	// newURL := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s", username, password, databaseServer.Spec.Postgres.Host, databaseServer.Spec.Postgres.Port, database.Spec.Name)
-
-	// log.Info("Connecting to new database", "username", username, "database", database.Spec.Name, "host", databaseServer.Spec.Postgres.Host, "port", databaseServer.Spec.Postgres.Port)
-
-	// newconn, err := pgxpool.Connect(ctx, newURL)
-	// if err != nil {
-	// 	log.Info("Unable to connect to new database", "err", err)
-	// 	database.Status.Connection = false
-	// 	if err := r.Status().Update(ctx, &database); err != nil {
-	// 		log.Error(err, "unable to update database status")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// } else {
-	// 	database.Status.Connection = true
-	// 	if err := r.Status().Update(ctx, &database); err != nil {
-	// 		log.Error(err, "unable to update database status")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// }
-	// defer newconn.Close()
-
-	if msg, err := ps.TestNewConnection(); err != nil {
-		log.Error(err, msg)
-		database.Status.Connection = false
-		if err := r.Status().Update(ctx, &database); err != nil {
-			log.Error(err, "unable to update database status")
-			return ctrl.Result{}, err
+	if databaseServer.Spec.Type == "postgresql" || databaseServer.Spec.Type == "postgres" {
+		sqlServer = &db.PostgresServer{
+			Username: databaseServer.Spec.Postgres.Username,
+			Password: string(serverSecret.Data["password"]),
+			Host:     databaseServer.Spec.Postgres.Host,
+			Port:     databaseServer.Spec.Postgres.Port,
+			Postgres: db.Postgres{
+				Name:     database.Spec.Name,
+				Username: username,
+				Password: password,
+			},
 		}
-	} else {
-		database.Status.Connection = true
-		if err := r.Status().Update(ctx, &database); err != nil {
-			log.Error(err, "unable to update database status")
-			return ctrl.Result{}, err
+	} else if databaseServer.Spec.Type == "mysql" {
+		sqlServer = &db.MysqlServer{
+			Username: databaseServer.Spec.Mysql.Username,
+			Password: string(serverSecret.Data["password"]),
+			Host:     databaseServer.Spec.Mysql.Host,
+			Port:     databaseServer.Spec.Mysql.Port,
+			Mysql: db.Mysql{
+				Name:     database.Spec.Name,
+				Username: username,
+				Password: password,
+			},
+		}
+	} else if databaseServer.Spec.Type == "mongo" {
+		sqlServer = &db.MongoServer{
+			Username: databaseServer.Spec.Mongo.Username,
+			Password: string(serverSecret.Data["password"]),
+			Host:     databaseServer.Spec.Mongo.Host,
+			Port:     databaseServer.Spec.Mongo.Port,
+			Mongo: db.Mongo{
+				Name:     database.Spec.Name,
+				Username: username,
+				Password: password,
+			},
 		}
 	}
 
-	if database.Spec.MigrationURL != "" {
-		if msg, err := ps.Migrate(database.Spec.MigrationURL); err != nil {
+	if msg, err := sqlServer.Connect(); err != nil {
+		log.Error(err, msg)
+		return ctrl.Result{}, err
+	}
+	database.Status.Connection = true
+	if err := r.Status().Update(ctx, &database); err != nil {
+		log.Error(err, "unable to update database status")
+		return ctrl.Result{}, err
+	}
+	defer sqlServer.Disconnect()
+
+	// Finalize handler
+	if !database.ObjectMeta.DeletionTimestamp.IsZero() && database.Spec.Deletable {
+		log.Info("Database being finalized")
+
+		if msg, err := sqlServer.DeleteDatabase(); err != nil {
+			log.Info(msg, "err", err)
+		}
+
+		if msg, err := sqlServer.DeleteUser(); err != nil {
+			log.Info(msg, "err", err)
+		}
+
+		// Remove finalizer to complete finazling
+		database.ObjectMeta.Finalizers = removeString(database.ObjectMeta.Finalizers, finalizer)
+		if err := r.Update(ctx, &database); err != nil {
+			log.Error(err, "unable to update database resource")
+			return ctrl.Result{}, err
+		}
+
+		return ctrl.Result{}, nil
+	}
+
+	if msg, err := sqlServer.CreateDatabase(); err != nil {
+		log.Error(err, msg)
+		return ctrl.Result{}, err
+	}
+	database.Status.CreatedDatabase = true
+	if err := r.Status().Update(ctx, &database); err != nil {
+		log.Error(err, "unable to update database status")
+		return ctrl.Result{}, err
+	}
+
+	if msg, err := sqlServer.CreateUser(); err != nil {
+		if strings.Contains(err.Error(), "already exists") {
+			log.Info("User already exists", "user", username)
+		} else {
 			log.Error(err, msg)
 			return ctrl.Result{}, err
 		}
 	}
+	database.Status.CreatedUser = true
+	if err := r.Status().Update(ctx, &database); err != nil {
+		log.Error(err, "unable to update database status")
+		return ctrl.Result{}, err
+	}
 
-	defer ps.Disconnect()
+	if msg, err := sqlServer.GrantPermissions(); err != nil {
+		log.Error(err, msg)
+		return ctrl.Result{}, err
+	}
+	database.Status.GrantedPermissions = true
+	if err := r.Status().Update(ctx, &database); err != nil {
+		log.Error(err, "unable to update database status")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
