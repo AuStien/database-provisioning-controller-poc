@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 // Postgres object
@@ -20,11 +17,12 @@ type Postgres struct {
 
 // PostgresServer object
 type PostgresServer struct {
+	Username string
+	Password string
 	Host     string
 	Port     int32
 	Postgres Postgres
 	DB       *sql.DB
-	NewDB    *sql.DB
 }
 
 // CreateUser creates a user
@@ -51,7 +49,7 @@ func (ps *PostgresServer) CreateUser() (string, error) {
 
 // DeleteUser from server
 func (ps *PostgresServer) DeleteUser() (string, error) {
-	_, err := ps.DB.Exec(fmt.Sprintf("DROP USER \"%s\"", ps.Postgres.Username))
+	_, err := ps.DB.Exec(fmt.Sprintf("DROP USER IF EXISTS \"%s\"", ps.Postgres.Username))
 	if err != nil {
 		return "unable to drop user in database server", err
 	}
@@ -74,7 +72,7 @@ func (ps *PostgresServer) CreateDatabase() (string, error) {
 
 // DeleteDatabase from server
 func (ps *PostgresServer) DeleteDatabase() (string, error) {
-	_, err := ps.DB.Exec(fmt.Sprintf("DROP DATABASE \"%s\"", ps.Postgres.Name))
+	_, err := ps.DB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS \"%s\"", ps.Postgres.Name))
 	if err != nil {
 		return "unable to drop database in database server", err
 	}
@@ -91,39 +89,10 @@ func (ps *PostgresServer) GrantPermissions() (string, error) {
 	return "Permissions successfully granted", nil
 }
 
-// TestNewConnection with newly created role and database
-func (ps *PostgresServer) TestNewConnection() (string, error) {
-	// Test if connection to new database works
-	newURL := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s", ps.Postgres.Username, ps.Postgres.Password, ps.Host, ps.Port, ps.Postgres.Name)
-
-	newdb, err := sql.Open("postgres", newURL)
-	if err != nil {
-		return "Unable to connect to new database", err
-	}
-	ps.NewDB = newdb
-	return "Connection to new database successfull", nil
-}
-
-// Migrate database to newest version
-func (ps *PostgresServer) Migrate(url string) (string, error) {
-	driver, err := postgres.WithInstance(ps.NewDB, &postgres.Config{})
-	if err != nil {
-		return "error getting driver", err
-	}
-	m, err := migrate.NewWithDatabaseInstance(
-		url,
-		"postgres", driver)
-	if err != nil {
-		return "migration failed", err
-	}
-	m.Up()
-	return "Migration successfull", nil
-}
-
 // Connect to postgresserver
-func (ps *PostgresServer) Connect(username, password string) (string, error) {
-	url := fmt.Sprintf("postgresql://%s:%s@%s:%d/postgres", username, password, ps.Host, ps.Port)
-	db, err := sql.Open("postgres", url)
+func (ps *PostgresServer) Connect() (string, error) {
+	url := fmt.Sprintf("postgresql://%s:%s@%s:%d/postgres", ps.Username, ps.Password, ps.Host, ps.Port)
+	db, err := sql.Open("pgx", url)
 	if err != nil {
 		return "unable to connect to database", err
 	}
@@ -134,8 +103,4 @@ func (ps *PostgresServer) Connect(username, password string) (string, error) {
 // Disconnect from postgresserver
 func (ps *PostgresServer) Disconnect() {
 	ps.DB.Close()
-	if ps.NewDB != nil {
-		ps.NewDB.Close()
-	}
-
 }
