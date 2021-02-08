@@ -80,19 +80,16 @@ spec:
               type: boolean
             db:
               description: DB is status of the new database on server
-              type: string
-            migrated:
-              description: Migrated is database has been migrated
               type: boolean
             permissions:
               description: Permissions is status of permissions given to new user
-              type: string
+              type: boolean
             secret:
               description: Secret is the status of secret containg credentials
-              type: string
+              type: boolean
             user:
               description: User is status of user on server
-              type: string
+              type: boolean
           type: object
       type: object
   version: v1alpha1
