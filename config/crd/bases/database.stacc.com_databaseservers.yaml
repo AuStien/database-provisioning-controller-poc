@@ -36,6 +36,38 @@ spec:
         spec:
           description: DatabaseServerSpec defines the desired state of DatabaseServer
           properties:
+            mongo:
+              properties:
+                host:
+                  description: Host is the hostname of the postgres server
+                  type: string
+                port:
+                  description: Port is the port of the server
+                  format: int32
+                  type: integer
+                useSsl:
+                  description: UseSsl is a bool deciding if ssl will be used
+                  type: boolean
+                username:
+                  description: Username is the username associated with the server
+                  type: string
+              type: object
+            mysql:
+              properties:
+                host:
+                  description: Host is the hostname of the postgres server
+                  type: string
+                port:
+                  description: Port is the port of the server
+                  format: int32
+                  type: integer
+                useSsl:
+                  description: UseSsl is a bool deciding if ssl will be used
+                  type: boolean
+                username:
+                  description: Username is the username associated with the server
+                  type: string
+              type: object
             postgres:
               properties:
                 host:
