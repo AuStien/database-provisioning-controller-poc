@@ -1,0 +1,12 @@
+apiVersion: database.stacc.com/v1alpha1
+kind: DatabaseServer
+metadata:
+  name: mysql-server
+spec:
+  type: mysql
+  secretName: mysql-test-server-secret
+  mysql:
+    host: localhost
+    username: my
+    port: 3306
+    useSsl: false

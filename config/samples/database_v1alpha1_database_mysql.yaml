@@ -1,15 +1,15 @@
 apiVersion: database.stacc.com/v1alpha1
 kind: Database
 metadata:
-  name: postgres-db
+  name: mysql-db
   finalizers:
     - database.stacc.com/finalizer
 spec:
   server:
-    name: databaseserver-sample
+    name: mysql-server
     namespace: default
-  name: postgres-db
+  name: mysqldb
   secret:
-    name: postgres-db-secret
+    name: mysql-db-secret
     namespace: default
   deletable: true

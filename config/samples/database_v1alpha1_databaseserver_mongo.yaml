@@ -1,0 +1,12 @@
+apiVersion: database.stacc.com/v1alpha1
+kind: DatabaseServer
+metadata:
+  name: mongo-server
+spec:
+  type: mongo
+  secretName: mongo-server-secret
+  mongo:
+    host: localhost
+    username: admin
+    port: 27017
+    useSsl: false

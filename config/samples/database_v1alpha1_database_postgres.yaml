@@ -1,0 +1,15 @@
+apiVersion: database.stacc.com/v1alpha1
+kind: Database
+metadata:
+  name: postgres-db
+  finalizers:
+    - database.stacc.com/finalizer
+spec:
+  server:
+    name: postgres-server
+    namespace: default
+  name: postgres-db
+  secret:
+    name: postgres-db-secret
+    namespace: default
+  deletable: true

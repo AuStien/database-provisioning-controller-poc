@@ -1,0 +1,15 @@
+apiVersion: database.stacc.com/v1alpha1
+kind: Database
+metadata:
+  name: mongo-db
+  finalizers:
+    - database.stacc.com/finalizer
+spec:
+  server:
+    name: mongo-server
+    namespace: default
+  name: mongo-db
+  secret:
+    name: mongo-db-secret
+    namespace: default
+  deletable: true

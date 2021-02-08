@@ -1,7 +1,7 @@
 apiVersion: database.stacc.com/v1alpha1
 kind: DatabaseServer
 metadata:
-  name: databaseserver-sample
+  name: postgres-server
 spec:
   type: postgresql
   secretName: postgres-test-server-secret
