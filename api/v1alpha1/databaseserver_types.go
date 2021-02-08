@@ -34,6 +34,28 @@ type Postgres struct {
 	UseSsl bool `json:"useSsl,omitempty"`
 }
 
+type Mysql struct {
+	// Host is the hostname of the postgres server
+	Host string `json:"host,omitempty"`
+	// Username is the username associated with the server
+	Username string `json:"username,omitempty"`
+	// Port is the port of the server
+	Port int32 `json:"port,omitempty"`
+	// UseSsl is a bool deciding if ssl will be used
+	UseSsl bool `json:"useSsl,omitempty"`
+}
+
+type Mongo struct {
+	// Host is the hostname of the postgres server
+	Host string `json:"host,omitempty"`
+	// Username is the username associated with the server
+	Username string `json:"username,omitempty"`
+	// Port is the port of the server
+	Port int32 `json:"port,omitempty"`
+	// UseSsl is a bool deciding if ssl will be used
+	UseSsl bool `json:"useSsl,omitempty"`
+}
+
 // DatabaseServerSpec defines the desired state of DatabaseServer
 type DatabaseServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -44,6 +66,8 @@ type DatabaseServerSpec struct {
 	// SecretName is the name of the secret stored in the cluster
 	SecretName string   `json:"secretName,omitempty"`
 	Postgres   Postgres `json:"postgres,omitempty"`
+	Mysql      Mysql    `json:"mysql,omitempty"`
+	Mongo      Mongo    `json:"mongo,omitempty"`
 }
 
 // DatabaseServerStatus defines the observed state of DatabaseServer
