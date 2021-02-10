@@ -7,6 +7,7 @@ spec:
     name: postgres-server
     namespace: default
   name: postgres-db
+  username: db-user
   secret:
     name: postgres-db-secret
     namespace: default
