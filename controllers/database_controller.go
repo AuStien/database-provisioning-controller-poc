@@ -161,7 +161,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				Password: password,
 			},
 		}
-	} else if databaseServer.Spec.Type == "mongo" {
+	} else if databaseServer.Spec.Type == "mongo" || databaseServer.Spec.Type == "mongodb" {
 		sqlServer = &db.MongoServer{
 			Username: databaseServer.Spec.Mongo.Username,
 			Password: string(serverSecret.Data["password"]),

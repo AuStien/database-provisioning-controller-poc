@@ -62,7 +62,7 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if databaseServer.Spec.Type == "postgresql" {
+	if databaseServer.Spec.Type == "postgresql" || databaseServer.Spec.Type == "postgres" {
 		server := db.PostgresServer{
 			Username: databaseServer.Spec.Postgres.Username,
 			Password: string(secret.Data["password"]),
@@ -101,7 +101,7 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 		defer server.Disconnect()
 
-	} else if databaseServer.Spec.Type == "mongo" {
+	} else if databaseServer.Spec.Type == "mongo" || databaseServer.Spec.Type == "mongodb" {
 		server := db.MongoServer{
 			Username: databaseServer.Spec.Mongo.Username,
 			Password: string(secret.Data["password"]),
