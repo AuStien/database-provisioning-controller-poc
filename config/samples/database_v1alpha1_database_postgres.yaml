@@ -2,8 +2,6 @@ apiVersion: database.stacc.com/v1alpha1
 kind: Database
 metadata:
   name: postgres-db
-  finalizers:
-    - database.stacc.com/finalizer
 spec:
   server:
     name: postgres-server

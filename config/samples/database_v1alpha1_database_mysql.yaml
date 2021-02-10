@@ -2,8 +2,6 @@ apiVersion: database.stacc.com/v1alpha1
 kind: Database
 metadata:
   name: mysql-db
-  finalizers:
-    - database.stacc.com/finalizer
 spec:
   server:
     name: mysql-server
