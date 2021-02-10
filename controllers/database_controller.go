@@ -206,6 +206,12 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			log.Info(msg, "err", err)
 		}
 
+		err = r.KubernetesClientset.CoreV1().Secrets(database.Spec.Secret.Namespace).Delete(database.Spec.Secret.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			log.Error(err, "unable to delete secret")
+			return ctrl.Result{}, err
+		}
+
 		// Remove finalizer to complete finazling
 		database.ObjectMeta.Finalizers = removeString(database.ObjectMeta.Finalizers, finalizer)
 		if err := r.Update(ctx, &database); err != nil {
