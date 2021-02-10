@@ -4,7 +4,7 @@ metadata:
   name: mysql-server
 spec:
   type: mysql
-  secretName: mysql-test-server-secret
+  secretName: mysql-server-secret
   mysql:
     host: localhost
     username: my

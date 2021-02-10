@@ -4,7 +4,7 @@ metadata:
   name: postgres-server
 spec:
   type: postgresql
-  secretName: postgres-test-server-secret
+  secretName: postgres-server-secret
   postgres:
     host: localhost
     username: postgres
