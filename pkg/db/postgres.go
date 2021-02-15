@@ -21,6 +21,7 @@ type PostgresServer struct {
 	Password string
 	Host     string
 	Port     int32
+	SslMode  string
 	Postgres Postgres
 	DB       *sql.DB
 }
@@ -59,7 +60,7 @@ func (ps *PostgresServer) DeleteUser() (string, error) {
 // CreateDatabase creates a database
 func (ps *PostgresServer) CreateDatabase() (string, error) {
 	// Try to create database
-	_, err := ps.DB.Exec(fmt.Sprintf("CREATE DATABASE \"%s\" TEMPLATE \"template0\"", ps.Postgres.Name))
+	_, err := ps.DB.Exec(fmt.Sprintf("CREATE DATABASE \"%s\"", ps.Postgres.Name))
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			return "Database already exisis", nil
@@ -91,7 +92,7 @@ func (ps *PostgresServer) GrantPermissions() (string, error) {
 
 // Connect to postgresserver
 func (ps *PostgresServer) Connect() (string, error) {
-	url := fmt.Sprintf("postgresql://%s:%s@%s:%d/postgres", ps.Username, ps.Password, ps.Host, ps.Port)
+	url := fmt.Sprintf("user='%s' password='%s' host='%s' port=%d database='postgres' sslmode='%s'", ps.Username, ps.Password, ps.Host, ps.Port, ps.SslMode)
 	db, err := sql.Open("pgx", url)
 	if err != nil {
 		return "unable to connect to database", err
