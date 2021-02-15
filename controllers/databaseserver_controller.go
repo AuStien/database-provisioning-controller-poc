@@ -56,7 +56,7 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	secret, err := r.KubernetesClientset.CoreV1().Secrets(databaseServer.GetNamespace()).Get(databaseServer.Spec.SecretName, metav1.GetOptions{})
+	secret, err := r.KubernetesClientset.CoreV1().Secrets(databaseServer.Spec.Secret.Namespace).Get(databaseServer.Spec.Secret.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Error(err, "Error obtaining secret")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
