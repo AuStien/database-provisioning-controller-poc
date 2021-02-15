@@ -52,10 +52,8 @@ type DatabaseSpec struct {
 	Secret Secret `json:"secret,omitempty"`
 	// Username is the username to be assigned to the database (default is name of database)
 	Username string `json:"username,omitempty"`
-	// Deletable is if database is able to be deleted
-	Deletable bool `json:"deletable,omitempty"`
-	// MigrationURL provides URL to the migration
-	MigrationURL string `json:"migrationURL,omitempty"`
+	// ReclaimPolicy tells if database will be retained or deleted
+	ReclaimPolicy string `json:"reclaimPolicy,omitempty"`
 }
 
 // DatabaseStatus defines the observed state of Database
