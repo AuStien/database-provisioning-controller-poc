@@ -41,7 +41,7 @@ func (ms *MysqlServer) CreateUser() (string, error) {
 		return "User created successfully", nil
 	} else {
 		return "User already exists", nil
-		}
+	}
 }
 
 // DeleteUser from server
@@ -60,6 +60,8 @@ func (ms *MysqlServer) CreateDatabase() (string, error) {
 	if err != nil {
 		if !strings.Contains(err.Error(), "exists") {
 			return "unable to create database in database server", err
+		} else {
+			return "Database already exists", nil
 		}
 	}
 	return "Database created successfully", nil
@@ -67,7 +69,7 @@ func (ms *MysqlServer) CreateDatabase() (string, error) {
 
 // DeleteDatabase from server
 func (ms *MysqlServer) DeleteDatabase() (string, error) {
-	_, err := ms.DB.Exec(fmt.Sprintf("DROP USER %s@'%s'", ms.Mysql.Username, ms.Host))
+	_, err := ms.DB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS '%s'", ms.Mysql.Name))
 	if err != nil {
 		return "unable to drop user in database server", err
 	}
