@@ -38,13 +38,8 @@ func (ps *PostgresServer) CreateUser() (string, error) {
 			return "unable to create role in database", err
 		}
 		return "User created successfully", nil
-		// If user exists update password
 	} else {
-		_, err = ps.DB.Exec(fmt.Sprintf("ALTER USER \"%s\" WITH PASSWORD '%s'", ps.Postgres.Username, ps.Postgres.Password))
-		if err != nil {
-			return "unable to alter user in database", err
-		}
-		return "User altered successfully", nil
+		return "User already exists", nil
 	}
 }
 

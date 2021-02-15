@@ -39,17 +39,9 @@ func (ms *MysqlServer) CreateUser() (string, error) {
 			return "unable to create role in database", err
 		}
 		return "User created successfully", nil
-
-		// If user exists update password
 	} else {
-		_, err := ms.DB.Exec(fmt.Sprintf("ALTER USER '%s'@'%s' IDENTIFIED BY '%s'", ms.Mysql.Username, ms.Host, ms.Mysql.Password))
-		if err != nil {
-			return "unable to alter user in database", err
+		return "User already exists", nil
 		}
-		return "User altered successfully", nil
-
-	}
-
 }
 
 // DeleteUser from server

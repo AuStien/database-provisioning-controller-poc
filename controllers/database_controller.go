@@ -83,18 +83,13 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Generate a password with length 48, 10 digits, allow uppercase, allow repeated chars
-	password, err := password.Generate(48, 10, 0, false, true)
-	if err != nil {
-		log.Error(err, "unable to generate password")
-		return ctrl.Result{}, err
-	}
-
 	// Get username, set to database name if not present
 	username := database.Spec.Username
 	if username == "" {
 		username = database.Spec.Name
 	}
+
+	var pass string
 
 	// Check if database secret exists
 	dbSecret, err := r.KubernetesClientset.CoreV1().Secrets(database.Spec.Secret.Namespace).Get(database.Spec.Secret.Name, metav1.GetOptions{})
@@ -104,6 +99,13 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			log.Error(err, "unable to create secret")
 			return ctrl.Result{}, err
 		}
+		// Generate a password with length 48, 10 digits, allow uppercase, allow repeated chars
+		genPass, err := password.Generate(48, 10, 0, false, true)
+		if err != nil {
+			log.Error(err, "unable to generate password")
+			return ctrl.Result{}, err
+		}
+		pass = genPass
 		// Create database secret
 		dbSecret = &coreV1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
@@ -112,28 +114,21 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			},
 			Data: map[string][]byte{
 				"username": []byte(username),
-				"password": []byte(password),
+				"password": []byte(pass),
 			},
 		}
-		_, err := r.KubernetesClientset.CoreV1().Secrets(database.Spec.Secret.Namespace).Create(dbSecret)
+		_, err = r.KubernetesClientset.CoreV1().Secrets(database.Spec.Secret.Namespace).Create(dbSecret)
 		if err != nil {
 			log.Error(err, "unable to create secret")
 			return ctrl.Result{}, err
 		}
-		// Secret already exists and needs to be updated
-	} else {
-		dbSecret.Data["username"] = []byte(username)
-		dbSecret.Data["password"] = []byte(password)
-		_, err := r.KubernetesClientset.CoreV1().Secrets(database.Spec.Secret.Namespace).Update(dbSecret)
-		if err != nil {
-			log.Error(err, "unable to update secret")
+		database.Status.CreatedSecret = true
+		if err := r.Status().Update(ctx, &database); err != nil {
+			log.Error(err, "unable to update database status")
 			return ctrl.Result{}, err
 		}
-	}
-	database.Status.CreatedSecret = true
-	if err := r.Status().Update(ctx, &database); err != nil {
-		log.Error(err, "unable to update database status")
-		return ctrl.Result{}, err
+	} else {
+		pass = string(dbSecret.Data["password"])
 	}
 
 	var sqlServer db.SQLServer
@@ -148,7 +143,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Postgres: db.Postgres{
 				Name:     database.Spec.Name,
 				Username: username,
-				Password: password,
+				Password: pass,
 			},
 		}
 	} else if databaseServer.Spec.Type == "mysql" {
@@ -162,7 +157,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Mysql: db.Mysql{
 				Name:     database.Spec.Name,
 				Username: username,
-				Password: password,
+				Password: pass,
 			},
 		}
 	} else if databaseServer.Spec.Type == "mongo" || databaseServer.Spec.Type == "mongodb" {
@@ -175,7 +170,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Mongo: db.Mongo{
 				Name:     database.Spec.Name,
 				Username: username,
-				Password: password,
+				Password: pass,
 			},
 		}
 	}
