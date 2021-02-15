@@ -83,7 +83,7 @@ func (ms *MongoServer) GrantPermissions() (string, error) {
 
 // Connect to Mongoserver
 func (ms *MongoServer) Connect() (string, error) {
-	url := fmt.Sprintf("mongodb://%s:%s@%s:%d?ssl=%s", ms.Username, ms.Password, ms.Host, ms.Port, ms.Ssl)
+	url := fmt.Sprintf("mongodb://%s:%s@%s:%d/?ssl=%s", ms.Username, ms.Password, ms.Host, ms.Port, ms.Ssl)
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(url))
 	if err != nil {
 		return "unable to connect to database", err
