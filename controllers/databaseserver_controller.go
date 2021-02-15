@@ -44,6 +44,7 @@ type DatabaseServerReconciler struct {
 }
 
 // +kubebuilder:rbac:groups=database.stacc.com,resources=databaseservers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=database.stacc.com,resources=databaseservers/status,verbs=get;update;patch
 
 // Reconcile DatabaseServer
