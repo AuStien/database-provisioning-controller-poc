@@ -64,10 +64,10 @@ type DatabaseServerSpec struct {
 	// Type is the type of database server. Postgres, mongo etc.
 	Type string `json:"type,omitempty"`
 	// SecretName is the name of the secret stored in the cluster
-	SecretName string   `json:"secretName,omitempty"`
-	Postgres   Postgres `json:"postgres,omitempty"`
-	Mysql      Mysql    `json:"mysql,omitempty"`
-	Mongo      Mongo    `json:"mongo,omitempty"`
+	Secret   Secret   `json:"secret,omitempty"`
+	Postgres Postgres `json:"postgres,omitempty"`
+	Mysql    Mysql    `json:"mysql,omitempty"`
+	Mongo    Mongo    `json:"mongo,omitempty"`
 }
 
 // DatabaseServerStatus defines the observed state of DatabaseServer
