@@ -3,10 +3,12 @@ kind: DatabaseServer
 metadata:
   name: postgres-server
 spec:
-  type: postgresql
-  secretName: postgres-server-secret
+  type: postgres
+  secret:
+    name: postgres-server-secret
+    namespace: default
   postgres:
     host: localhost
     username: postgres
     port: 5432
-    useSsl: false
+    sslmode: require

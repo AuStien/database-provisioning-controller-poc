@@ -1,14 +1,13 @@
 apiVersion: database.stacc.com/v1alpha1
 kind: Database
 metadata:
-  name: postgres-db
+  name: mongo-db
 spec:
   server:
-    name: postgres-server
+    name: mongo-server
     namespace: default
-  name: postgres-db
-  username: db-user
+  name: mongo-db
   secret:
-    name: postgres-db-secret
+    name: mongo-db-secret
     namespace: default
-  deletable: true
+  reclaimPolicy: delete
