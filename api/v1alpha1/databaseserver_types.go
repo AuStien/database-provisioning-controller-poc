@@ -30,8 +30,8 @@ type Postgres struct {
 	Username string `json:"username,omitempty"`
 	// Port is the port of the server
 	Port int32 `json:"port,omitempty"`
-	// UseSsl is a bool deciding if ssl will be used
-	UseSsl bool `json:"useSsl,omitempty"`
+	// SslMode is which sslmode used in connection
+	SslMode string `json:"sslmode,omitempty"`
 }
 
 type Mysql struct {
@@ -41,8 +41,8 @@ type Mysql struct {
 	Username string `json:"username,omitempty"`
 	// Port is the port of the server
 	Port int32 `json:"port,omitempty"`
-	// UseSsl is a bool deciding if ssl will be used
-	UseSsl bool `json:"useSsl,omitempty"`
+	// SslMode is which sslmode used in connection
+	SslMode string `json:"sslmode,omitempty"`
 }
 
 type Mongo struct {
@@ -52,8 +52,8 @@ type Mongo struct {
 	Username string `json:"username,omitempty"`
 	// Port is the port of the server
 	Port int32 `json:"port,omitempty"`
-	// UseSsl is a bool deciding if ssl will be used
-	UseSsl bool `json:"useSsl,omitempty"`
+	// Ssl is if ssl is enabled
+	Ssl string `json:"ssl,omitempty"`
 }
 
 // DatabaseServerSpec defines the desired state of DatabaseServer
