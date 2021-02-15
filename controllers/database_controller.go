@@ -45,6 +45,7 @@ type DatabaseReconciler struct {
 }
 
 // +kubebuilder:rbac:groups=database.stacc.com,resources=databases,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=database.stacc.com,resources=databases/status,verbs=get;update;patch
 
 func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
