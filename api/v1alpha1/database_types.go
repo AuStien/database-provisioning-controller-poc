@@ -26,17 +26,17 @@ import (
 // Server is the server on which the database is hosted
 type Server struct {
 	// Name is the name of the database server
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 	// Namespace is the namespace of the database server
-	Namespace string `json:"namespace,omitempty"`
+	Namespace string `json:"namespace"`
 }
 
 // Secret is the secret containing credentials
 type Secret struct {
 	// Name is the name of the secret
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 	// Namespace is the namespace of the secret
-	Namespace string `json:"namespace,omitempty"`
+	Namespace string `json:"namespace"`
 }
 
 // DatabaseSpec defines the desired state of Database
@@ -45,15 +45,15 @@ type DatabaseSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Server is the namespaced name of databaseServer on which this database is to be created
-	Server Server `json:"server,omitempty"`
+	Server Server `json:"server"`
 	// Name is the name of the database
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 	// Secret is the secret containing credentials
-	Secret Secret `json:"secret,omitempty"`
+	Secret Secret `json:"secret"`
 	// Username is the username to be assigned to the database (default is name of database)
 	Username string `json:"username,omitempty"`
 	// ReclaimPolicy tells if database will be retained or deleted
-	ReclaimPolicy string `json:"reclaimPolicy,omitempty"`
+	ReclaimPolicy string `json:"reclaimPolicy"`
 }
 
 // DatabaseStatus defines the observed state of Database

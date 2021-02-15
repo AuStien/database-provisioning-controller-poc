@@ -25,35 +25,35 @@ import (
 
 type Postgres struct {
 	// Host is the hostname of the postgres server
-	Host string `json:"host,omitempty"`
+	Host string `json:"host"`
 	// Username is the username associated with the server
-	Username string `json:"username,omitempty"`
+	Username string `json:"username"`
 	// Port is the port of the server
-	Port int32 `json:"port,omitempty"`
+	Port int32 `json:"port"`
 	// SslMode is which sslmode used in connection
-	SslMode string `json:"sslmode,omitempty"`
+	SslMode string `json:"sslmode"`
 }
 
 type Mysql struct {
 	// Host is the hostname of the postgres server
-	Host string `json:"host,omitempty"`
+	Host string `json:"host"`
 	// Username is the username associated with the server
-	Username string `json:"username,omitempty"`
+	Username string `json:"username"`
 	// Port is the port of the server
-	Port int32 `json:"port,omitempty"`
+	Port int32 `json:"port"`
 	// SslMode is which sslmode used in connection
-	SslMode string `json:"sslmode,omitempty"`
+	SslMode string `json:"sslmode"`
 }
 
 type Mongo struct {
 	// Host is the hostname of the postgres server
-	Host string `json:"host,omitempty"`
+	Host string `json:"host"`
 	// Username is the username associated with the server
-	Username string `json:"username,omitempty"`
+	Username string `json:"username"`
 	// Port is the port of the server
-	Port int32 `json:"port,omitempty"`
+	Port int32 `json:"port"`
 	// Ssl is if ssl is enabled
-	Ssl string `json:"ssl,omitempty"`
+	Ssl string `json:"ssl"`
 }
 
 // DatabaseServerSpec defines the desired state of DatabaseServer
@@ -62,9 +62,9 @@ type DatabaseServerSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Type is the type of database server. Postgres, mongo etc.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type"`
 	// SecretName is the name of the secret stored in the cluster
-	Secret   Secret   `json:"secret,omitempty"`
+	Secret   Secret   `json:"secret"`
 	Postgres Postgres `json:"postgres,omitempty"`
 	Mysql    Mysql    `json:"mysql,omitempty"`
 	Mongo    Mongo    `json:"mongo,omitempty"`
