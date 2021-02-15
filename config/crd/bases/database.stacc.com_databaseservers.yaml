@@ -45,9 +45,9 @@ spec:
                   description: Port is the port of the server
                   format: int32
                   type: integer
-                useSsl:
-                  description: UseSsl is a bool deciding if ssl will be used
-                  type: boolean
+                sslmode:
+                  description: SslMode is which sslmode used in connection
+                  type: string
                 username:
                   description: Username is the username associated with the server
                   type: string
@@ -61,9 +61,9 @@ spec:
                   description: Port is the port of the server
                   format: int32
                   type: integer
-                useSsl:
-                  description: UseSsl is a bool deciding if ssl will be used
-                  type: boolean
+                sslmode:
+                  description: SslMode is which sslmode used in connection
+                  type: string
                 username:
                   description: Username is the username associated with the server
                   type: string
@@ -77,16 +77,23 @@ spec:
                   description: Port is the port of the server
                   format: int32
                   type: integer
-                useSsl:
-                  description: UseSsl is a bool deciding if ssl will be used
-                  type: boolean
+                sslmode:
+                  description: SslMode is which sslmode used in connection
+                  type: string
                 username:
                   description: Username is the username associated with the server
                   type: string
               type: object
-            secretName:
+            secret:
               description: SecretName is the name of the secret stored in the cluster
-              type: string
+              properties:
+                name:
+                  description: Name is the name of the secret
+                  type: string
+                namespace:
+                  description: Namespace is the namespace of the secret
+                  type: string
+              type: object
             type:
               description: Type is the type of database server. Postgres, mongo etc.
               type: string
