@@ -144,6 +144,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Password: string(serverSecret.Data["password"]),
 			Host:     databaseServer.Spec.Postgres.Host,
 			Port:     databaseServer.Spec.Postgres.Port,
+			SslMode:  databaseServer.Spec.Postgres.SslMode,
 			Postgres: db.Postgres{
 				Name:     database.Spec.Name,
 				Username: username,
@@ -156,6 +157,8 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Password: string(serverSecret.Data["password"]),
 			Host:     databaseServer.Spec.Mysql.Host,
 			Port:     databaseServer.Spec.Mysql.Port,
+			SslMode:  databaseServer.Spec.Mysql.SslMode,
+
 			Mysql: db.Mysql{
 				Name:     database.Spec.Name,
 				Username: username,
@@ -168,6 +171,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Password: string(serverSecret.Data["password"]),
 			Host:     databaseServer.Spec.Mongo.Host,
 			Port:     databaseServer.Spec.Mongo.Port,
+			Ssl:      databaseServer.Spec.Mongo.Ssl,
 			Mongo: db.Mongo{
 				Name:     database.Spec.Name,
 				Username: username,

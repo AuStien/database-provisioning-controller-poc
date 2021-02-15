@@ -68,6 +68,7 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			Password: string(secret.Data["password"]),
 			Host:     databaseServer.Spec.Postgres.Host,
 			Port:     databaseServer.Spec.Postgres.Port,
+			SslMode:  databaseServer.Spec.Postgres.SslMode,
 		}
 
 		if msg, err := server.Connect(); err != nil {
@@ -87,6 +88,7 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			Password: string(secret.Data["password"]),
 			Host:     databaseServer.Spec.Mysql.Host,
 			Port:     databaseServer.Spec.Mysql.Port,
+			SslMode:  databaseServer.Spec.Mysql.SslMode,
 		}
 
 		if msg, err := server.Connect(); err != nil {
@@ -107,6 +109,7 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			Password: string(secret.Data["password"]),
 			Host:     databaseServer.Spec.Mongo.Host,
 			Port:     databaseServer.Spec.Mongo.Port,
+			Ssl:      databaseServer.Spec.Mongo.Ssl,
 		}
 
 		if msg, err := server.Connect(); err != nil {
