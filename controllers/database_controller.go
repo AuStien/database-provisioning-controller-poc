@@ -187,7 +187,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	defer sqlServer.Disconnect()
 
 	// If database shall be deleted with CR, add finalizer
-	if database.Spec.Deletable && !containsString(database.ObjectMeta.Finalizers, finalizer) {
+	if database.Spec.ReclaimPolicy == "delete" && !containsString(database.ObjectMeta.Finalizers, finalizer) {
 		database.ObjectMeta.Finalizers = append(database.ObjectMeta.Finalizers, finalizer)
 		if err := r.Update(ctx, &database); err != nil {
 			return ctrl.Result{}, err
@@ -195,7 +195,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Finalize handler
-	if !database.ObjectMeta.DeletionTimestamp.IsZero() && database.Spec.Deletable {
+	if !database.ObjectMeta.DeletionTimestamp.IsZero() && database.Spec.ReclaimPolicy == "delete" {
 		log.Info("Database being finalized")
 
 		if msg, err := sqlServer.DeleteDatabase(); err != nil {
