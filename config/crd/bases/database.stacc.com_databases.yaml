@@ -36,14 +36,11 @@ spec:
         spec:
           description: DatabaseSpec defines the desired state of Database
           properties:
-            deletable:
-              description: Deletable is if database is able to be deleted
-              type: boolean
-            migrationURL:
-              description: MigrationURL provides URL to the migration
-              type: string
             name:
               description: Name is the name of the database
+              type: string
+            reclaimPolicy:
+              description: ReclaimPolicy tells if database will be retained or deleted
               type: string
             secret:
               description: Secret is the secret containing credentials
