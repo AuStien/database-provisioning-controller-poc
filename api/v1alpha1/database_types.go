@@ -72,6 +72,10 @@ type DatabaseStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Database Name",type=string,JSONPath=".spec.name",description="name of database"
+// +kubebuilder:printcolumn:name="Server",type=string,JSONPath=".spec.server.name",description="name of database server"
+// +kubebuilder:printcolumn:name="Reclaim Policy",type=string,JSONPath=".spec.reclaimPolicy",description="reclaim policy"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // Database is the Schema for the databases API
 type Database struct {

@@ -8,6 +8,22 @@ metadata:
   creationTimestamp: null
   name: databases.database.stacc.com
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.name
+    description: name of database
+    name: Database Name
+    type: string
+  - JSONPath: .spec.server.name
+    description: name of database server
+    name: Server
+    type: string
+  - JSONPath: .spec.reclaimPolicy
+    description: reclaim policy
+    name: Reclaim Policy
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: database.stacc.com
   names:
     kind: Database
@@ -51,6 +67,9 @@ spec:
                 namespace:
                   description: Namespace is the namespace of the secret
                   type: string
+              required:
+              - name
+              - namespace
               type: object
             server:
               description: Server is the namespaced name of databaseServer on which
@@ -62,11 +81,19 @@ spec:
                 namespace:
                   description: Namespace is the namespace of the database server
                   type: string
+              required:
+              - name
+              - namespace
               type: object
             username:
               description: Username is the username to be assigned to the database
                 (default is name of database)
               type: string
+          required:
+          - name
+          - reclaimPolicy
+          - secret
+          - server
           type: object
         status:
           description: DatabaseStatus defines the observed state of Database

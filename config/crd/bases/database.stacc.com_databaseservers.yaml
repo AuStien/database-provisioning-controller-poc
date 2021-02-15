@@ -8,6 +8,14 @@ metadata:
   creationTimestamp: null
   name: databaseservers.database.stacc.com
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.type
+    description: type of database server
+    name: Type
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: database.stacc.com
   names:
     kind: DatabaseServer
@@ -45,12 +53,17 @@ spec:
                   description: Port is the port of the server
                   format: int32
                   type: integer
-                sslmode:
-                  description: SslMode is which sslmode used in connection
+                ssl:
+                  description: Ssl is if ssl is enabled
                   type: string
                 username:
                   description: Username is the username associated with the server
                   type: string
+              required:
+              - host
+              - port
+              - ssl
+              - username
               type: object
             mysql:
               properties:
@@ -67,6 +80,11 @@ spec:
                 username:
                   description: Username is the username associated with the server
                   type: string
+              required:
+              - host
+              - port
+              - sslmode
+              - username
               type: object
             postgres:
               properties:
@@ -83,6 +101,11 @@ spec:
                 username:
                   description: Username is the username associated with the server
                   type: string
+              required:
+              - host
+              - port
+              - sslmode
+              - username
               type: object
             secret:
               description: SecretName is the name of the secret stored in the cluster
@@ -93,10 +116,16 @@ spec:
                 namespace:
                   description: Namespace is the namespace of the secret
                   type: string
+              required:
+              - name
+              - namespace
               type: object
             type:
               description: Type is the type of database server. Postgres, mongo etc.
               type: string
+          required:
+          - secret
+          - type
           type: object
         status:
           description: DatabaseServerStatus defines the observed state of DatabaseServer
