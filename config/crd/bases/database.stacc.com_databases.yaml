@@ -57,6 +57,9 @@ spec:
               type: string
             reclaimPolicy:
               description: ReclaimPolicy tells if database will be retained or deleted
+              enum:
+              - delete
+              - retain
               type: string
             secret:
               description: Secret is the secret containing credentials

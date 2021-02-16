@@ -30,6 +30,7 @@ type Postgres struct {
 	Username string `json:"username"`
 	// Port is the port of the server
 	Port int32 `json:"port"`
+	// +kubebuilder:validation:Enum=disable;allow;prefer;require;verify-ca;verify-full
 	// SslMode is which sslmode used in connection
 	SslMode string `json:"sslmode"`
 }
@@ -41,6 +42,7 @@ type Mysql struct {
 	Username string `json:"username"`
 	// Port is the port of the server
 	Port int32 `json:"port"`
+	// +kubebuilder:validation:Enum=disabled;preferred;required;verify-ca;verify-identity
 	// SslMode is which sslmode used in connection
 	SslMode string `json:"sslmode"`
 }
@@ -52,6 +54,7 @@ type Mongo struct {
 	Username string `json:"username"`
 	// Port is the port of the server
 	Port int32 `json:"port"`
+	// +kubebuilder:validation:Enum=true;false
 	// Ssl is if ssl is enabled
 	Ssl string `json:"ssl"`
 }
@@ -61,7 +64,8 @@ type DatabaseServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Type is the type of database server. Postgres, mongo etc.
+	// +kubebuilder:validation:Enum=postgres;mysql;mongo
+	// Type is the type of database server. Postgres, mongo or mysql
 	Type string `json:"type"`
 	// SecretName is the name of the secret stored in the cluster
 	Secret   Secret   `json:"secret"`

@@ -52,6 +52,7 @@ type DatabaseSpec struct {
 	Secret Secret `json:"secret"`
 	// Username is the username to be assigned to the database (default is name of database)
 	Username string `json:"username,omitempty"`
+	// +kubebuilder:validation:Enum=delete;retain
 	// ReclaimPolicy tells if database will be retained or deleted
 	ReclaimPolicy string `json:"reclaimPolicy"`
 }

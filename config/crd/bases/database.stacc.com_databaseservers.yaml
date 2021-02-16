@@ -55,6 +55,9 @@ spec:
                   type: integer
                 ssl:
                   description: Ssl is if ssl is enabled
+                  enum:
+                  - true
+                  - false
                   type: string
                 username:
                   description: Username is the username associated with the server
@@ -76,6 +79,12 @@ spec:
                   type: integer
                 sslmode:
                   description: SslMode is which sslmode used in connection
+                  enum:
+                  - disabled
+                  - preferred
+                  - required
+                  - verify-ca
+                  - verify-identity
                   type: string
                 username:
                   description: Username is the username associated with the server
@@ -97,6 +106,13 @@ spec:
                   type: integer
                 sslmode:
                   description: SslMode is which sslmode used in connection
+                  enum:
+                  - disable
+                  - allow
+                  - prefer
+                  - require
+                  - verify-ca
+                  - verify-full
                   type: string
                 username:
                   description: Username is the username associated with the server
@@ -122,6 +138,10 @@ spec:
               type: object
             type:
               description: Type is the type of database server. Postgres, mongo etc.
+              enum:
+              - postgres
+              - mysql
+              - mongo
               type: string
           required:
           - secret
