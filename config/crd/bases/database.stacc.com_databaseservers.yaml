@@ -137,7 +137,8 @@ spec:
               - namespace
               type: object
             type:
-              description: Type is the type of database server. Postgres, mongo etc.
+              description: Type is the type of database server. Postgres, mongo or
+                mysql
               enum:
               - postgres
               - mysql
