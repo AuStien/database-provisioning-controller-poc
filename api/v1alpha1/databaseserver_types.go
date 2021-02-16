@@ -56,7 +56,7 @@ type Mongo struct {
 	Port int32 `json:"port"`
 	// +kubebuilder:validation:Enum=true;false
 	// Ssl is if ssl is enabled
-	Ssl string `json:"ssl"`
+	Ssl bool `json:"ssl"`
 }
 
 // DatabaseServerSpec defines the desired state of DatabaseServer
