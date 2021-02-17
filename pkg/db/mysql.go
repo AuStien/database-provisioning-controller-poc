@@ -21,7 +21,7 @@ type MysqlServer struct {
 	Password string
 	Host     string
 	Port     int32
-	SslMode  string
+	Ssl      bool
 	Mysql    Mysql
 	DB       *sql.DB
 }
@@ -88,7 +88,7 @@ func (ms *MysqlServer) GrantPermissions() (string, error) {
 
 // Connect to postgresserver
 func (ms *MysqlServer) Connect() (string, error) {
-	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/mysql?tls=%s", ms.Username, ms.Password, ms.Host, ms.Port, ms.SslMode)
+	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/mysql?tls=%t", ms.Username, ms.Password, ms.Host, ms.Port, ms.Ssl)
 	db, err := sql.Open("mysql", url)
 	if err != nil {
 		return "unable to connect to database", err

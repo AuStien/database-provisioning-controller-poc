@@ -42,9 +42,9 @@ type Mysql struct {
 	Username string `json:"username"`
 	// Port is the port of the server
 	Port int32 `json:"port"`
-	// +kubebuilder:validation:Enum=disabled;preferred;required;verify-ca;verify-identity
-	// SslMode is which sslmode used in connection
-	SslMode string `json:"sslmode"`
+	// +kubebuilder:validation:Enum=true;false
+	// Ssl is if ssl is enabled
+	Ssl bool `json:"ssl"`
 }
 
 type Mongo struct {

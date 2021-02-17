@@ -58,7 +58,7 @@ spec:
                   enum:
                   - true
                   - false
-                  type: string
+                  type: boolean
                 username:
                   description: Username is the username associated with the server
                   type: string
@@ -77,22 +77,19 @@ spec:
                   description: Port is the port of the server
                   format: int32
                   type: integer
-                sslmode:
-                  description: SslMode is which sslmode used in connection
+                ssl:
+                  description: Ssl is if ssl is enabled
                   enum:
-                  - disabled
-                  - preferred
-                  - required
-                  - verify-ca
-                  - verify-identity
-                  type: string
+                  - true
+                  - false
+                  type: boolean
                 username:
                   description: Username is the username associated with the server
                   type: string
               required:
               - host
               - port
-              - sslmode
+              - ssl
               - username
               type: object
             postgres:

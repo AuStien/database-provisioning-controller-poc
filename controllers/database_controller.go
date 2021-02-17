@@ -152,7 +152,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Password: string(serverSecret.Data["password"]),
 			Host:     databaseServer.Spec.Mysql.Host,
 			Port:     databaseServer.Spec.Mysql.Port,
-			SslMode:  databaseServer.Spec.Mysql.SslMode,
+			Ssl:      databaseServer.Spec.Mysql.Ssl,
 
 			Mysql: db.Mysql{
 				Name:     database.Spec.Name,
