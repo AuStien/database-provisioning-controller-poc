@@ -69,9 +69,9 @@ func (ms *MysqlServer) CreateDatabase() (string, error) {
 
 // DeleteDatabase from server
 func (ms *MysqlServer) DeleteDatabase() (string, error) {
-	_, err := ms.DB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS '%s'", ms.Mysql.Name))
+	_, err := ms.DB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", ms.Mysql.Name))
 	if err != nil {
-		return "unable to drop user in database server", err
+		return "unable to drop database in database server", err
 	}
 	return "Database deleted successfully", nil
 }
