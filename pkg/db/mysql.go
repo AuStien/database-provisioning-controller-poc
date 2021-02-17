@@ -93,6 +93,9 @@ func (ms *MysqlServer) Connect() (string, error) {
 	if err != nil {
 		return "unable to connect to database", err
 	}
+	if err := db.Ping(); err != nil {
+		return "ping to database failed", err
+	}
 	ms.DB = db
 	return "Connection to database successful", nil
 }
