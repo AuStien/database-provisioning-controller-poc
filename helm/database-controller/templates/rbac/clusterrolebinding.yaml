@@ -1,0 +1,17 @@
+{{- $name := include "database-controller.name" . -}}
+{{- $version := include "database-controller.version" . -}}
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+    version: {{ $version }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $name }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}

@@ -1,0 +1,17 @@
+{{- $name := include "database-controller.name" . -}}
+{{- $version := include "database-controller.version" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+    version: {{ $version }}
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http-metrics
+  selector:
+    app: {{ $name }}

@@ -1,0 +1,132 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: databases.database.stacc.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.name
+    description: name of database
+    name: Database Name
+    type: string
+  - JSONPath: .spec.server.name
+    description: name of database server
+    name: Server
+    type: string
+  - JSONPath: .spec.reclaimPolicy
+    description: reclaim policy
+    name: Reclaim Policy
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
+  group: database.stacc.com
+  names:
+    kind: Database
+    listKind: DatabaseList
+    plural: databases
+    singular: database
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: Database is the Schema for the databases API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: DatabaseSpec defines the desired state of Database
+          properties:
+            name:
+              description: Name is the name of the database
+              type: string
+            reclaimPolicy:
+              description: ReclaimPolicy tells if database will be retained or deleted
+              enum:
+              - delete
+              - retain
+              type: string
+            secret:
+              description: Secret is the secret containing credentials
+              properties:
+                name:
+                  description: Name is the name of the secret
+                  type: string
+                namespace:
+                  description: Namespace is the namespace of the secret
+                  type: string
+              required:
+              - name
+              - namespace
+              type: object
+            server:
+              description: Server is the namespaced name of databaseServer on which
+                this database is to be created
+              properties:
+                name:
+                  description: Name is the name of the database server
+                  type: string
+                namespace:
+                  description: Namespace is the namespace of the database server
+                  type: string
+              required:
+              - name
+              - namespace
+              type: object
+            username:
+              description: Username is the username to be assigned to the database
+                (default is name of database)
+              type: string
+          required:
+          - name
+          - reclaimPolicy
+          - secret
+          - server
+          type: object
+        status:
+          description: DatabaseStatus defines the observed state of Database
+          properties:
+            connection:
+              description: Connection is status of connection to new database with
+                new user
+              type: boolean
+            db:
+              description: DB is status of the new database on server
+              type: boolean
+            permissions:
+              description: Permissions is status of permissions given to new user
+              type: boolean
+            secret:
+              description: Secret is the status of secret containg credentials
+              type: boolean
+            user:
+              description: User is status of user on server
+              type: boolean
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

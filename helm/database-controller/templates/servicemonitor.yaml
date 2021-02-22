@@ -1,0 +1,21 @@
+{{- if or  .Values.serviceMonitor.enabled }}
+{{- $name := include "database-controller.name" . -}}
+{{- $version := include "database-controller.version" . -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+    version: {{ $version }}
+    {{- if .Values.serviceMonitor.additionalLabels }}
+    {{- toYaml .Values.serviceMonitor.additionalLabels | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  endpoints:
+  - port: http-metrics
+    path: /metrics
+{{- end }}
