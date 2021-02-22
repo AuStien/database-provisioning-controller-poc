@@ -1,0 +1,37 @@
+name: Helm
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'helm/**'
+      - '.github/workflows/helm.yml'
+
+jobs:
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Login ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_SECRET }}
+      - name: Login Azure
+        run: |
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }} > /dev/null 2>&1
+      - name: Init helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+          az acr helm repo add -n ${{ secrets.AZURE_HELM_REPO }}
+      - name: Package helm chart
+        run: |
+          helm package database-provisioner
+      - name: Push helm chart
+        run: |
+          az acr helm push -n ${{ secrets.AZURE_HELM_REPO }} *.tgz
