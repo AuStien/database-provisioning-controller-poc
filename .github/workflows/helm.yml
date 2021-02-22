@@ -32,7 +32,7 @@ jobs:
           az acr helm repo add -n ${{ secrets.AZURE_HELM_REPO }}
       - name: Package helm chart
         run: |
-          helm package database-provisioner
+          helm package database-controller
       - name: Push helm chart
         run: |
           az acr helm push -n ${{ secrets.AZURE_HELM_REPO }} *.tgz
