@@ -2,6 +2,9 @@
 A controller built on [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) automatically creating a user and database on a database server.
 
 # About
+Creates a new user and database on a database server.
+Generates a secret containing the username and password used to connect to the database created for that spesific user. 
+
 Currently supports Postgresql, Mysql and Mongodb.
 ## Custom Resources
 ### DatabaseServer
@@ -14,22 +17,30 @@ kind: DatabaseServer
 metadata:
   name: postgres-server
 spec:
-  type: postgresql
-  secretName: postgres-server-secret
+  type: postgres
+  secret:
+    name: postgres-server-secret
+    namespace: default
   postgres:
     host: localhost
     username: postgres
     port: 5432
-    useSsl: false
+    sslmode: disable
 
 ```
 - type: The type of database server being used. [postgres, mysql or mongo]
-- secretName: Name of the secret where the password used to login is stored. [Must contain a field called "password"]
-- postgres: Object with the name of type of database. Must be either postgres, mysql, or mongo.
-  - host: Hostname of server
-  - username: Username used to login
+- secret: Secret where the password used to login is stored. [Must contain a field called "password"]
+    name: Name of the secret
+    namespace: Namespace where the secret is located
+- postgres: Object with the name of type of database. [Must be either postgres, mysql, or mongo]
+  - host: Hostname to the server
+  - username: Username used to login (Must be a user with permission to create users and databases)
   - port: Port of the server
-  - useSsl: If SSL shall be used. (Currently not implemented)
+  - sslmode: Which SSL mode to use. Differs between postgres, mysql and mongo. See below
+
+Postgres: "sslmode": [disable, allow, prefer, require, verify-ca, verify-full]
+Mysql: "ssl": [true, false]
+Mongo: "ssl": [true, false]
 
 ### Database
 Provides the name of the database and user to be created.
@@ -43,7 +54,7 @@ metadata:
 spec:
   name: postgres-db
   username: db-user
-  deletable: true
+  reclaimPolicy: delete
   server:
     name: postgres-server
     namespace: default
@@ -54,7 +65,7 @@ spec:
 ```
 - name: The name of the database
 - username(Optional): The username to be associated with the database. If omitted will default to the name of the database.
-- deletable: If the user and database shall be deleted when this resource is.
+- reclaimPolicy: What will happen with the user and database when this resource is deleted. [delete, retain]
 - server: Points to the DatabaseServer resource this database shall be hosted on.
   - name: Name of the resource.
   - namespace: The namespace the resource currently is.
@@ -73,5 +84,10 @@ Examples for both resources made for all types of databases can be found [here](
   - [Mysql](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_v1alpha1_database_mysql.yaml)
   - [Mongo](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_v1alpha1_database_mongo.yaml)
   
-  # Getting started
-  (Coming soon)
+# Getting started
+  
+## Helm
+The easiest way to install the controller and CRDs is with (helm)[https://helm.sh/].
+```SHELL
+helm install database-controller helm/database-controller
+```
