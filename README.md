@@ -87,7 +87,8 @@ Examples for both resources made for all types of databases can be found [here](
 # Getting started
   
 ## Helm
-The easiest way to install the controller and CRDs is with (helm)[https://helm.sh/].
+The easiest way to install the controller and CRDs is with [helm](https://helm.sh/).
 ```SHELL
 helm install database-controller helm/database-controller
 ```
+
