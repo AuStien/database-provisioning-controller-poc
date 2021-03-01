@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"strings"
+	"time"
 
 	databasev1alpha1 "flow.stacc.dev/database-provisioning-poc/api/v1alpha1"
 	db "flow.stacc.dev/database-provisioning-poc/pkg/db"
@@ -66,21 +67,21 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	var databaseServer databasev1alpha1.DatabaseServer
 	err = r.Get(ctx, client.ObjectKey{Namespace: database.Spec.Server.Namespace, Name: database.Spec.Server.Name}, &databaseServer)
 	if err != nil {
-		log.Error(err, "uanble to get databaseServer resource")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		log.Error(err, "uanble to get databaseServer resource. Retrying in 10 seconds.")
+		return ctrl.Result{RequeueAfter: time.Second * 10}, client.IgnoreNotFound(err)
 	}
 
 	// Stop reconsiling if database server is not connected
 	if databaseServer.Status.Connected == false {
-		log.Info("Database server not connected")
-		return ctrl.Result{}, nil
+		log.Info("Database server not connected. Retrying in 10 seconds.")
+		return ctrl.Result{RequeueAfter: time.Second * 10}, nil
 	}
 
 	// Get secret with database server password
 	serverSecret, err := r.KubernetesClientset.CoreV1().Secrets(databaseServer.Spec.Secret.Namespace).Get(databaseServer.Spec.Secret.Name, metav1.GetOptions{})
 	if err != nil {
-		log.Error(err, "Error obtaining secret")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		log.Error(err, "Error obtaining secret. Retrying in 1 minute.")
+		return ctrl.Result{RequeueAfter: time.Minute}, client.IgnoreNotFound(err)
 	}
 
 	// Get username, set to database name if not present

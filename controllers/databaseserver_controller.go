@@ -59,8 +59,8 @@ func (r *DatabaseServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	secret, err := r.KubernetesClientset.CoreV1().Secrets(databaseServer.Spec.Secret.Namespace).Get(databaseServer.Spec.Secret.Name, metav1.GetOptions{})
 	if err != nil {
-		log.Error(err, "Error obtaining secret")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		log.Error(err, "Error obtaining secret. Retrying in 10 seconds.")
+		return ctrl.Result{RequeueAfter: time.Second * 10}, client.IgnoreNotFound(err)
 	}
 
 	if databaseServer.Spec.Type == "postgresql" || databaseServer.Spec.Type == "postgres" {
