@@ -3,11 +3,11 @@ kind: Database
 metadata:
   name: mysql-db
 spec:
+  name: mysqldb
+  reclaimPolicy: delete
   server:
     name: mysql-server
     namespace: default
-  name: mysqldb
   secret:
     name: mysql-db-secret
     namespace: default
-  deletable: true

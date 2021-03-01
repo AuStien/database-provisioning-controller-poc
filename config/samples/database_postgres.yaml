@@ -3,11 +3,12 @@ kind: Database
 metadata:
   name: postgres-db
 spec:
+  name: postgres-db
+  username: postgres-user
+  reclaimPolicy: delete
   server:
     name: postgres-server
     namespace: default
-  name: postgres-db
   secret:
     name: postgres-db-secret
     namespace: default
-  reclaimPolicy: delete

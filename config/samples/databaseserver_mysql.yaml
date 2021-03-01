@@ -4,9 +4,11 @@ metadata:
   name: mysql-server
 spec:
   type: mysql
-  secretName: mysql-server-secret
   mysql:
     host: localhost
-    username: my
     port: 3306
-    useSsl: false
+    username: my
+    ssl: false
+  secret:
+    name: mysql-server-secret
+    namespace: default

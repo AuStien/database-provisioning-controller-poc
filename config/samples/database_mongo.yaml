@@ -3,11 +3,11 @@ kind: Database
 metadata:
   name: mongo-db
 spec:
+  name: mongo-db
+  reclaimPolicy: delete
   server:
     name: mongo-server
     namespace: default
-  name: mongo-db
   secret:
     name: mongo-db-secret
     namespace: default
-  reclaimPolicy: delete

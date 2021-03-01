@@ -4,11 +4,11 @@ metadata:
   name: mongo-server
 spec:
   type: mongo
-  secret:
-    name: mongo-server-secret
-    namespace: default
   mongo:
     host: localhost
     username: admin
     port: 27017
-    ssl: 'true'
+    ssl: false
+  secret:
+    name: mongo-server-secret
+    namespace: default
