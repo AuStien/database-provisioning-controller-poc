@@ -1,7 +1,7 @@
 # Database Provisioning Controller PoC
 A controller built on [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) automatically creating a user and database on a database server.
 
-## Index
+# Index
 - [About](#about)
   - [Custom Resources](#custom-resources)
     -  [DatabaseServer](#databaseserver)
