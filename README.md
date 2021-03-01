@@ -12,8 +12,8 @@ A controller built on [Kubebuilder](https://github.com/kubernetes-sigs/kubebuild
 - [Usage](#usage)
   - [Creating a DatabaseServer resource](#creating-a-databaseserver-resource)
   - [Creating a Database resource](#creating-a-database-resource)
-    - [Manually](#manually)
-    - [With Helm](#with-helm)
+    - [Manually creating a Database resource](#manually-creating-a-database-resource)
+    - [Creating a Database resource using Helm](#creating-a-database-resource-using-helm)
 # About
 Creates a new user and database on a database server.
 Generates a secret containing the username and password used to connect to the database created for that spesific user. 
@@ -135,7 +135,7 @@ Make sure you have a database server running with access to a user able to creat
   ```
 
 ## Creating a Database resource
-### Manually
+### Manually creating a Database resource
 1. Create a Database resource and apply it to the cluster.
   ```YAML
   apiVersion: database.stacc.com/v1alpha1
@@ -156,7 +156,7 @@ Make sure you have a database server running with access to a user able to creat
   ```
 2. Now a user and database is created. The username and password required to login is stored on the Secret specified in the Database resource.
 
-### With Helm
+### Creating a Database resource using Helm
 With a bit of custom setup it is possible to make the process of creating a Database much easier. There are many ways of doing this. The following is just one example.
 
 **In this case it is assumed that the DatabaseServer is already up and running.**
