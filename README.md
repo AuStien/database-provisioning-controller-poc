@@ -31,20 +31,17 @@ metadata:
   name: postgres-server
 spec:
   type: postgres
-  secret:
-    name: postgres-server-secret
-    namespace: default
   postgres:
     host: localhost
     username: postgres
     port: 5432
     sslmode: disable
+  secret:
+    name: postgres-server-secret
+    namespace: default
 
 ```
 - type: The type of database server being used. [postgres, mysql or mongo]
-- secret: Secret where the password used to login is stored. [Must contain a field called "password"]
-    name: Name of the secret
-    namespace: Namespace where the secret is located
 - postgres: Object with the name of type of database. [Must be either postgres, mysql, or mongo]
   - host: Hostname to the server
   - username: Username used to login (Must be a user with permission to create users and databases)
@@ -53,6 +50,9 @@ spec:
     - Postgres: "sslmode": [disable, allow, prefer, require, verify-ca, verify-full]
     - Mysql: "ssl": [true, false]
     - Mongo: "ssl": [true, false]
+- secret: Secret where the password used to login is stored. [Must contain a field called "password"]
+    name: Name of the secret
+    namespace: Namespace where the secret is located
 
 ### Database
 Provides the name of the database and user to be created.
@@ -124,14 +124,14 @@ Make sure you have a database server running with access to a user able to creat
     name: postgres-server
   spec:
     type: postgres
-    secret:
-      name: postgres-server-secret
-      namespace: default
     postgres:
       host: localhost
       username: postgres
       port: 5432
       sslmode: disable
+    secret:
+      name: postgres-server-secret
+      namespace: default
   ```
 
 ## Creating a Database resource
