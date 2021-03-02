@@ -88,13 +88,13 @@ spec:
 ### More examples
 Examples for both resources made for all types of databases can be found [here](https://github.com/AuStien/database-provisioning-controller-poc/tree/main/config/samples).
 - DatabaseServer
-  - [Postgres](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_v1alpha1_databaseserver_postgres.yaml)
-  - [Mysql](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_v1alpha1_databaseserver_mysql.yaml)
-  - [Mongo](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_v1alpha1_databaseserver_mongo.yaml)
+  - [Postgres](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/databaseserver_postgres.yaml)
+  - [Mysql](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/databaseserver_mysql.yaml)
+  - [Mongo](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/databaseserver_mongo.yaml)
 - Database
-  - [Postgres](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_v1alpha1_database_postgres.yaml)
-  - [Mysql](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_v1alpha1_database_mysql.yaml)
-  - [Mongo](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_v1alpha1_database_mongo.yaml)
+  - [Postgres](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_postgres.yaml)
+  - [Mysql](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_mysql.yaml)
+  - [Mongo](https://github.com/AuStien/database-provisioning-controller-poc/blob/main/config/samples/database_mongo.yaml)
   
 # Getting started
   
